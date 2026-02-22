@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Re:Connect SG</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/static/css/messages.css">
+  <link rel="stylesheet" href="/static/css/profile.css?v=20260214b">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+  <style>
+    /* Page-specific tweaks requested */
+    .profile-main .interest-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .profile-main .interest-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+      border-radius: 12px;
+      background: var(--card, #ffffff);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      line-height: 1.1;
+    }
+
+    .profile-avatar-large {
+      background: #ffffff;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+
+    .profile-avatar-large img {
+      background: #ffffff;
+      border-radius: 50%;
+    }
+
+    .safety-score-card {
+      border: 2px solid #fde2c7;
+      border-radius: 16px;
+      padding: 1rem;
+      background: #fff7ed;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+    }
+    .safety-score-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+    .safety-score-label { color: var(--muted-foreground); font-weight: 600; }
+    .safety-score-value { font-size: 2rem; font-weight: 800; color: #1f2937; }
+    .safety-badge {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .safety-score-meter {
+      height: 10px;
+      background: #f1f5f9;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .safety-score-fill {
+      height: 100%;
+      width: 0%;
+      background: #f97316;
+      transition: width 0.3s ease;
+    }
+    .safety-score-meta {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .safety-events {
+      margin-top: 0.75rem;
+      display: grid;
+      gap: 0.5rem;
+      color: #7c4c22;
+      font-weight: 600;
+    }
+  </style>
+
+  <link rel="stylesheet" href="/static/css/fab.css">
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="{{ "/dashboard" if session.get("user_id") else "/" }}" class="logo">
+        <div class="logo-circle"></div>
+        <span class="logo-text">Re:Connect <span class="logo-sg">SG</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/dashboard" data-i18n="nav_home">Home</a></li>
+        <li class="notification-menu">
+          <button class="notification-btn" id="notif-btn">
+            <span class="notification-icon">&#x1F514;</span>
+            <span class="notification-badge">3</span>
+          </button>
+        </li>
+        <li><a href="/wellbeing" data-i18n="nav_wellbeing">Wellbeing</a></li>
+        <li><a href="/scrapbook" data-i18n="nav_scrapbook">Scrapbook</a></li>
+        <li><a href="/messages" data-i18n="nav_messages">Messages</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Notifications Dropdown -->
+  <div class="notifications-dropdown" id="notifications-dropdown">
+    <div class="notifications-header">
+      <h3>Notifications</h3>
+      <button class="mark-read-btn">Mark all as read</button>
+    </div>
+    <div class="notifications-list">
+      <div class="notification-item unread">
+        <div class="notif-icon orange">&#x1F4AC;</div>
+        <div class="notif-content">
+          <p><strong>Mdm Chen</strong> sent you a message</p>
+          <span class="notif-time">5 minutes ago</span>
+        </div>
+      </div>
+      <div class="notification-item unread">
+        <div class="notif-icon teal">&#x1F91D;</div>
+        <div class="notif-content">
+          <p><strong>New match found!</strong> You have a 95% match with Uncle Tan</p>
+          <span class="notif-time">1 hour ago</span>
+        </div>
+      </div>
+      <div class="notification-item unread">
+        <div class="notif-icon success">&#x1F3C6;</div>
+        <div class="notif-content">
+          <p><strong>Badge unlocked:</strong> Hello There</p>
+          <span class="notif-time">2 hours ago</span>
+        </div>
+      </div>
+    </div>
+    <a href="#" class="view-all-notif">View All Notifications</a>
+  </div>
+
+  <!-- Profile Content -->
+  <main class="profile-main">
+    <div class="container" style="max-width: 900px;">
+      <!-- Profile Header -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div style="margin-bottom: 1rem;">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'success' if category == 'success' else 'info' }}" role="alert">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      <div class="profile-header-card">
+        <div class="profile-cover" id="profile-cover"{% if banner_url %} style="background-image: url('{{ banner_url }}');"{% endif %}>
+          <button class="edit-banner-btn" id="edit-banner-btn">&#x1F5BC;&#xFE0F;</button>
+          <input type="file" id="banner-input-camera" accept="image/*" capture="environment" style="display:none;">
+          <input type="file" id="banner-input-upload" accept="image/*" style="display:none;">
+        </div>
+        <div class="profile-header-content">
+          <div class="profile-avatar-large">
+            <img id="profile-avatar" src="{{ avatar_url if avatar_url else '/static/images/avatar-placeholder.svg' }}" alt="{{ user.full_name }}">
+            <button class="edit-avatar-btn" id="edit-avatar-btn">&#x1F4F7;</button>
+            <input type="file" id="avatar-input-camera" accept="image/*" capture="user" style="display:none;">
+            <input type="file" id="avatar-input-upload" accept="image/*" style="display:none;">
+          </div>
+          <div class="profile-header-info">
+            <div class="profile-name-section">
+              <h1 id="profile-name">{{ user.full_name }}</h1>
+              {% set is_verified = verified_with in ["email", "phone", "singpass", "nric"] %}
+              <span class="verification-badge" id="verification-badge" style="{{ '' if is_verified else 'display:none;' }}">&#x2714; Verified</span>
+            </div>
+            <p style="margin: 0.35rem 0 0.4rem;"><a href="/avatar" class="btn btn-outline-teal btn-sm">Open Avatar Builder</a></p>
+            {% set member_type = (user.member_type or "Youth") %}
+            {% set member_label = "Senior Member" if "senior" in member_type|lower else "Youth Member" %}
+            <p class="profile-type">{{ member_label }} &bull; Joined {{ user.created_at.strftime("%b %Y") }}</p>
+            <div class="profile-stats">
+              <div class="stat-item">
+                <span class="stat-number" id="connections-count">{{ connections_count }}</span>
+                <span class="stat-label">Connections</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="memories-count">{{ memories_count }}</span>
+                <span class="stat-label">Memories</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="repoints-count">{{ repoints_count }}</span>
+                <span class="stat-label">Re:Points</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Tabs -->
+      <div class="profile-tabs">
+        <button class="profile-tab-btn active" data-tab="about">About</button>
+        <button class="profile-tab-btn" data-tab="interests">Interests & Skills</button>
+        <button class="profile-tab-btn" data-tab="safety">Safety & Verification</button>
+        <button class="profile-tab-btn" data-tab="settings">Settings</button>
+      </div>
+
+      <!-- Tab: About -->
+      <div class="profile-tab-content active" id="tab-about">
+        <div class="profile-section">
+          <h3>About Me</h3>
+          <p class="bio-text" id="bio-text"></p>
+          <button class="btn-edit" id="edit-bio-btn">Edit Bio</button>
+        </div>
+
+        <div class="profile-section">
+          <h3>Location</h3>
+          <p id="location-display">&#x1F4CD; {{ location_name if location_name else "Set your location" }}</p>
+          <div class="profile-mrt-selector">
+            <div class="profile-mrt-search">
+              <input type="text" id="profile-mrt-search" placeholder="Search MRT stations...">
+              <button type="button" class="btn btn-outline-teal" id="profile-mrt-save-btn">Save Stations</button>
+            </div>
+            <div class="profile-mrt-line-filter" id="profile-mrt-line-filter">
+              <button type="button" class="profile-mrt-line-chip active" data-line-filter="ALL">All</button>
+              <button type="button" class="profile-mrt-line-chip line-ns" data-line-filter="NS">NS</button>
+              <button type="button" class="profile-mrt-line-chip line-ew" data-line-filter="EW">EW</button>
+              <button type="button" class="profile-mrt-line-chip line-dt" data-line-filter="DT">DT</button>
+              <button type="button" class="profile-mrt-line-chip line-ne" data-line-filter="NE">NE</button>
+              <button type="button" class="profile-mrt-line-chip line-cc" data-line-filter="CC">CC</button>
+              <button type="button" class="profile-mrt-line-chip line-te" data-line-filter="TE">TE</button>
+            </div>
+            <div class="profile-mrt-options" id="profile-mrt-options"></div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h3>Languages</h3>
+          <form method="POST" action="/profile/languages/save" id="languages-form">
+            <div class="lang-options" style="display:flex; flex-wrap:wrap; gap:0.75rem;">
+              <label class="lang-badge"><input type="checkbox" name="languages" value="English" class="lang-checkbox" {% if "English" in user_languages %}checked{% endif %}> &#x1F1EC;&#x1F1E7; English</label>
+              <label class="lang-badge"><input type="checkbox" name="languages" value="Chinese (Mandarin)" class="lang-checkbox" {% if "Chinese (Mandarin)" in user_languages %}checked{% endif %}> &#x1F1E8;&#x1F1F3; Chinese (Mandarin)</label>
+              <label class="lang-badge"><input type="checkbox" name="languages" value="Malay" class="lang-checkbox" {% if "Malay" in user_languages %}checked{% endif %}> &#x1F1F2;&#x1F1FE; Malay</label>
+              <label class="lang-badge"><input type="checkbox" name="languages" value="Tamil" class="lang-checkbox" {% if "Tamil" in user_languages %}checked{% endif %}> &#x1F1EE;&#x1F1F3; Tamil</label>
+              <label class="lang-badge"><input type="checkbox" name="languages" value="Hokkien" class="lang-checkbox" {% if "Hokkien" in user_languages %}checked{% endif %}> &#x1F5E3;&#xFE0F; Hokkien</label>
+            </div>
+            <button class="btn-edit" id="save-languages" type="submit">Save Languages</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tab: Interests & Skills -->
+      <div class="profile-tab-content" id="tab-interests">
+        <div class="profile-section">
+          <h3>My Interests</h3>
+          <div class="interest-tags">
+            {% set interest_map = {
+              "technology": "&#x1F4BB; Technology",
+              "cooking": "&#x1F373; Cooking",
+              "gardening": "&#x1F331; Gardening",
+              "music": "&#x1F3B5; Music",
+              "art": "&#x1F3A8; Arts & Crafts",
+              "reading": "&#x1F4DA; Reading",
+              "fitness": "&#x1F4AA; Fitness",
+              "photography": "&#x1F4F7; Photography",
+              "travel": "&#x2708;&#xFE0F; Travel",
+              "games": "&#x1F3AE; Games",
+              "language": "&#x1F5E3;&#xFE0F; Languages",
+              "volunteering": "&#x1F91D; Volunteering"
+            } %}
+            {% for interest in onboarding.get('interests', []) %}
+              <span class="interest-tag">{{ interest_map.get(interest, interest|title) }}</span>
+            {% endfor %}
+          </div>
+          <button class="btn-edit" id="edit-interests">Edit Interests</button>
+        </div>
+
+        <div class="profile-section">
+          <h3>Skills I Can Teach</h3>
+          <ul class="skills-list" id="skills-teach-list"></ul>
+          <button class="btn-edit" id="edit-skills-teach">Edit Skills</button>
+        </div>
+
+        <div class="profile-section">
+          <h3>Skills I Want to Learn</h3>
+          <ul class="skills-list" id="skills-learn-list"></ul>
+          <button class="btn-edit" id="edit-skills-learn">Edit Skills</button>
+        </div>
+      </div>
+
+      <!-- Tab: Safety & Verification -->
+      <div class="profile-tab-content" id="tab-safety">
+        <div class="profile-section">
+          <h3>&#x1F512; Contact Verification</h3>
+          <div class="verification-status {{ 'verified' if is_verified else 'not-verified' }}" id="verification-status">
+            <div class="verification-icon">&#x2714;</div>
+            <div>
+              <p class="verification-title" id="verification-title">{{ "Account Verified" if is_verified else "Not Verified Yet" }}</p>
+              <p class="verification-desc" id="verification-desc">
+                {% if is_verified %}
+                  Your account is verified via {{ verified_with|upper }}
+                {% else %}
+                  Verify your email or phone number to protect your account.
+                {% endif %}
+              </p>
+              <p class="verification-date" id="verification-date">{% if is_verified %}Verified{% endif %}</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+            <button class="btn btn-outline-teal" type="button" id="verify-email">Verify Email</button>
+            <button class="btn btn-outline-teal" type="button" id="verify-phone">Verify Phone</button>
+          </div>
+        </div>
+
+        <div class="profile-section" id="safety-score">
+          <h3>&#x1F6E1;&#xFE0F; Safety & Trust</h3>
+          <div class="safety-score-card">
+            <div class="safety-score-header">
+              <div>
+                <div class="safety-score-label">Safety Score</div>
+                <div class="safety-score-value" id="safety-score-value">--</div>
+              </div>
+              <span class="safety-badge" id="safety-score-badge" style="display:none;">Trusted Member</span>
+            </div>
+            <div class="safety-score-meter">
+              <div class="safety-score-fill" id="safety-score-fill"></div>
+            </div>
+            <div class="safety-score-meta">
+              <button type="button" class="btn btn-outline-teal btn-sm" id="safety-score-info">What affects my score?</button>
+              <a href="/safety#trust-score" class="btn btn-outline-teal btn-sm">Learn more</a>
+            </div>
+            <div class="safety-events" id="safety-events"></div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h3>&#x1F6E1;&#xFE0F; Safety Features</h3>
+          <div class="safety-features">
+            <div class="safety-feature-item">
+              <input type="checkbox" id="chat-filter" checked>
+              <label for="chat-filter">
+                <strong>Enable Safe Chat Filters</strong>
+                <p>Automatically filter inappropriate content in messages</p>
+              </label>
+            </div>
+            <div class="safety-feature-item">
+              <input type="checkbox" id="activity-monitoring" checked>
+              <label for="activity-monitoring">
+                <strong>Activity Monitoring</strong>
+                <p>Allow Re:Connect to monitor for suspicious behavior</p>
+              </label>
+            </div>
+            <div class="safety-feature-item">
+              <input type="checkbox" id="public-profile">
+              <label for="public-profile">
+                <strong>Public Profile</strong>
+                <p>Allow other users to view your profile</p>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h3>&#x26A0;&#xFE0F; Report & Block</h3>
+          <p style="color: var(--muted-foreground); margin-bottom: 1rem;">
+            If you encounter any inappropriate behavior or content, please report it immediately.
+          </p>
+          <div style="display:grid; gap:0.75rem;">
+            <select id="report-target" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 0.5rem;">
+              <option value="">Select connection to block (optional)</option>
+            </select>
+            <select id="report-reason" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 0.5rem;">
+              <option value="">Select reason</option>
+              <option value="Harassment">Harassment</option>
+              <option value="Scam/Fraud">Scam/Fraud</option>
+              <option value="Inappropriate Content">Inappropriate Content</option>
+              <option value="Impersonation">Impersonation</option>
+              <option value="Other">Other</option>
+            </select>
+            <input type="date" id="report-date" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 0.5rem;">
+            <textarea id="report-details" rows="3" placeholder="Describe what happened" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 0.5rem;"></textarea>
+            <label style="display:flex; align-items:center; gap:0.5rem; font-weight:600;">
+              <input type="checkbox" id="report-block-now">
+              Block this selected connection now
+            </label>
+            <button class="btn-report" id="submit-report">Submit Report</button>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h3>&#x1F464; Emergency Contact</h3>
+          <div style="display:grid; gap:0.75rem;">
+            <input type="text" id="emergency-name" placeholder="Contact name" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 0.5rem;">
+            <select id="emergency-relationship" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 0.5rem;">
+              <option value="">Relationship</option>
+              <option value="Parent">Parent</option>
+              <option value="Spouse">Spouse</option>
+              <option value="Child">Child</option>
+              <option value="Sibling">Sibling</option>
+              <option value="Relative">Relative</option>
+              <option value="Friend">Friend</option>
+              <option value="Caregiver">Caregiver</option>
+              <option value="Other">Other</option>
+            </select>
+            <div style="display:grid; grid-template-columns: 130px 1fr; gap:0.6rem;">
+              <select id="emergency-phone-code" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 0.5rem;">
+                <option value="+65">+65 (SG)</option>
+                <option value="+60">+60 (MY)</option>
+                <option value="+62">+62 (ID)</option>
+                <option value="+63">+63 (PH)</option>
+                <option value="+66">+66 (TH)</option>
+                <option value="+86">+86 (CN)</option>
+                <option value="+91">+91 (IN)</option>
+                <option value="+44">+44 (UK)</option>
+                <option value="+1">+1 (US)</option>
+              </select>
+              <input type="text" id="emergency-phone" inputmode="numeric" pattern="[0-9]*" placeholder="Phone number" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 0.5rem;">
+            </div>
+            <button class="btn-edit" id="save-emergency">Save Emergency Contact</button>
+          </div>
+        </div>
+
+        <div class="profile-section safety-tips">
+          <h3>&#x1F4A1; Safety Tips</h3>
+          <ul>
+            <li>Never share personal information (NRIC, bank details, address) in chats</li>
+            <li>Meet in public places for in-person activities</li>
+            <li>Report suspicious behavior immediately</li>
+            <li>Use Re:Connect's messaging system for all communications</li>
+            <li>Trust your instincts - if something feels wrong, report it</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tab: Settings -->
+      <div class="profile-tab-content" id="tab-settings">
+        <div class="profile-section">
+          <h3>&#x1F514; Notification Preferences</h3>
+          <div class="settings-list">
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="notif-messages">
+                <span>New Messages</span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="notif-matches">
+                <span>New Matches</span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="notif-circles">
+                <span>Learning Circle Reminders</span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="notif-challenges">
+                <span>Weekly Challenge Announcements</span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="notif-badges">
+                <span>Badge Unlocks</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h3>&#x1F510; Privacy Settings</h3>
+          <div class="settings-list">
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="privacy-age">
+                <span>Show my age</span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="privacy-location">
+                <span>Show my location (area only)</span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="privacy-badges">
+                <span>Show my badges publicly</span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox" id="privacy-direct">
+                <span>Allow direct messages from matches</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h3>&#x1F310; Language & Accessibility</h3>
+          <div class="settings-list">
+            <div class="setting-item">
+              <label>
+                <span>Interface Language:</span>
+                <select class="setting-select">
+                  <option value="en">English</option>
+                  <option value="zh">ä¸­æ–‡ (Chinese)</option>
+                  <option value="ms">Bahasa Melayu</option>
+                  <option value="ta">à®¤à®®à®¿à®´à¯ (Tamil)</option>
+                </select>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox">
+                <span>Enable screen reader support</span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>
+                <input type="checkbox">
+                <span>Simplified navigation mode</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-section danger-zone">
+          <h3>&#x26A0;&#xFE0F; Account Management</h3>
+          <button class="btn-secondary">Change Password</button>
+          <button class="btn-secondary">Download My Data</button>
+          <button class="btn-danger" id="delete-account-btn" type="button">Delete Account</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Language Modal -->
+  <div class="modal" id="lang-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Language / é€‰æ‹©è¯­è¨€</h3>
+        <button class="close-modal" id="close-lang-modal">&times;</button>
+      </div>
+      <div class="lang-options">
+        <button class="lang-option-big" data-lang="en">
+          <span class="lang-flag">&#x1F1EC;&#x1F1E7;</span>
+          <span class="lang-name">English</span>
+        </button>
+        <button class="lang-option-big" data-lang="zh">
+          <span class="lang-flag">&#x1F1E8;&#x1F1F3;</span>
+          <span class="lang-name">ä¸­æ–‡ (Chinese)</span>
+        </button>
+        <button class="lang-option-big" data-lang="ms">
+          <span class="lang-flag">&#x1F1F2;&#x1F1FE;</span>
+          <span class="lang-name">Bahasa Melayu</span>
+        </button>
+        <button class="lang-option-big" data-lang="ta">
+          <span class="lang-flag">&#x1F1EE;&#x1F1F3;</span>
+          <span class="lang-name">à®¤à®®à®¿à®´à¯ (Tamil)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="media-choice-modal" id="media-choice-modal" aria-hidden="true">
+    <div class="media-choice-card">
+      <h4>Update Photo</h4>
+      <p>Choose how you want to add a photo.</p>
+      <div class="media-choice-actions">
+        <button type="button" class="btn btn-orange glow" id="media-choice-camera">Take a photo</button>
+        <button type="button" class="btn btn-outline-teal" id="media-choice-upload">Upload from device</button>
+        <button type="button" class="btn btn-outline-teal" id="media-choice-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div class="ui-modal" id="ui-modal">
+    <div class="ui-modal-card">
+      <div class="ui-modal-header">
+        <h3 id="ui-modal-title">Notice</h3>
+        <button class="ui-modal-close" id="ui-modal-close">&#x2716;</button>
+      </div>
+      <div class="ui-modal-body" id="ui-modal-body"></div>
+      <div class="ui-modal-actions" id="ui-modal-actions"></div>
+    </div>
+  </div>
+
+  <script src="/static/js/messages.js"></script>
+  <script src="/static/js/notifications.js"></script>
+  <script src="/static/js/profile.js?v=20260214c"></script>
+
+  <script>
+    (function () {
+      function editInterests() {
+        // Redirect to onboarding to reselect interests (edit mode)
+        window.location.href = '/onboarding?edit=1';
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('edit-interests');
+        if (btn) btn.addEventListener('click', editInterests);
+      });
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% include "partials/fab.html" %}
+  <script src="/static/js/fab.js"></script>
+</body>
+
+</html>
+
+
+

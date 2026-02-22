@@ -1,0 +1,10 @@
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.7
+Werkzeug==3.0.3
+
+# ADMIN ACCOUNTS
+# ID: ryanadmin    PW: Ryan123!
+# ID: adenadmin    PW: Aden123!
+# ID: nicholasadmin PW: Nicholas123!
+# ID: seanadmin    PW: Sean123!
